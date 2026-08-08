@@ -4,11 +4,15 @@ services:
   healthCheckPath: /minio/health/live
   runtime: image
   image:
-    url: docker.io/minio/minio:latest
-  dockerCommand: minio server /data --address $HOST:$PORT --console-address $HOST:$CONSOLE_PORT
+    url: cgr.dev/chainguard/minio
+  dockerCommand: >-
+    /bin/sh -c mkdir -p /data &&
+    exec minio server --address $HOST:$PORT --console-address $HOST:$CONSOLE_PORT /data
   # Use the following 'dockerCommand' if removing the 'minio-console'
   # web service
-  # dockerCommand: minio server /data --address $HOST:$PORT
+  # dockerCommand: >-
+  #   /bin/sh -c mkdir -p /data &&
+  #   exec minio server --address $HOST:$PORT /data
   autoDeploy: false
   disk:
     name: data
