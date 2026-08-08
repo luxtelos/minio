@@ -6,6 +6,8 @@ Click the button below to deploy MinIO to your Render account:
 
 [![Deploy to Render](http://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy)
 
+The Blueprint uses the [Chainguard MinIO image](https://images.chainguard.dev/directory/image/minio/overview). Its Render startup command runs `/bin/sh -c` to create `/data` and then starts MinIO with `exec`. MinIO stores its data in `/data`, which is attached to the persistent disk.
+
 This will create two web services:
 * A public MinIO S3-compatible API server with automatically generated username and password environment variables. This server does not include the MinIO web console, which is a separate service. Admin credentials can be found under **Environment** in the Render dashboard.
 * A web console for MinIO. You can use the username and password generated for the API server to log in, but MinIO does not recommend it for security reasons. Instead, create a new user with the [`mc`](https://min.io/docs/minio/linux/reference/minio-mc.html) CLI. You can use the instructions at https://github.com/minio/console#setup.
