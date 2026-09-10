@@ -19,7 +19,6 @@ services:
     value: 9000
   - key: CONSOLE_PORT
     value: 9090
-  
 
 - type: web
   name: minio-console
