@@ -1,10 +1,21 @@
 #!/bin/sh
 
 DNS_RESOLVER="$(awk '/^nameserver[[:space:]]+/{print $2; exit}' /etc/resolv.conf)"
+MINIO_RESOLVED_HOST="$(getent hosts "$MINIO_HOST" | awk 'NR==1{print $2}')"
 
 if [ -z "$DNS_RESOLVER" ]; then
   echo >&2 "No DNS resolver found in /etc/resolv.conf"
   exit 1
 fi
 
-export DNS_RESOLVER
+if [ -z "$MINIO_RESOLVED_HOST" ]; then
+  echo >&2 "Unable to resolve the MinIO private-service hostname"
+  exit 1
+fi
+
+if ! nslookup "$MINIO_RESOLVED_HOST" "$DNS_RESOLVER" >/dev/null 2>&1; then
+  echo >&2 "The MinIO canonical hostname is not resolvable by the Nginx DNS resolver"
+  exit 1
+fi
+
+export DNS_RESOLVER MINIO_RESOLVED_HOST

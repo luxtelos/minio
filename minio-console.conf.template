@@ -17,7 +17,9 @@ server {
 	proxy_buffering off;
 	proxy_request_buffering off;
 
-	set $minio_console_backend "http://${MINIO_HOST}:${MINIO_CONSOLE_PORT}";
+	# Render's system resolver expands the short private-service hostname to
+	# a canonical name. Nginx resolves that canonical name for every request.
+	set $minio_console_backend "http://${MINIO_RESOLVED_HOST}:${MINIO_CONSOLE_PORT}";
 
 	location = /healthz {
 		proxy_http_version 1.1;
