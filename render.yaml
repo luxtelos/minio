@@ -12,7 +12,7 @@ services:
     name: data
     mountPath: /data
   envVars:
-  # Credentials are intentionally unmanaged here so an existing service keeps its current values.
+  # Credentials are intentionally unmanaged so the existing service keeps its current values.
   - key: HOST
     value: "0.0.0.0"
   - key: PORT
@@ -25,6 +25,7 @@ services:
   runtime: docker
   dockerContext: /
   dockerfilePath: ./Dockerfile
+  healthCheckPath: /healthz
   autoDeploy: false
   envVars:
   - key: PORT
