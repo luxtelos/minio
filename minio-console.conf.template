@@ -1,18 +1,33 @@
-upstream minio_console {
-	server ${MINIO_HOST}:${MINIO_CONSOLE_PORT};
+map $http_upgrade $connection_upgrade {
+	default upgrade;
+	'' close;
 }
+
+resolver ${DNS_RESOLVER} valid=10s ipv6=off;
+resolver_timeout 5s;
 
 server {
 	listen ${PORT};
 
-	# Allow special characters in headers
+	# Allow special characters in headers.
 	ignore_invalid_headers off;
 	# Allow any size file to be uploaded.
-	# Set to a value such as 1000m; to restrict file size to a specific value
 	client_max_body_size 0;
-	# Disable buffering
+	# Stream uploads and responses instead of buffering them.
 	proxy_buffering off;
 	proxy_request_buffering off;
+
+	set $minio_console_backend "http://${MINIO_HOST}:${MINIO_CONSOLE_PORT}";
+
+	location = /healthz {
+		proxy_http_version 1.1;
+		proxy_set_header Host ${MINIO_HOST};
+		proxy_set_header Connection close;
+		proxy_connect_timeout 5s;
+		proxy_read_timeout 5s;
+		proxy_send_timeout 5s;
+		proxy_pass $minio_console_backend/;
+	}
 
 	location / {
 		proxy_set_header Host $http_host;
@@ -21,21 +36,18 @@ server {
 		proxy_set_header X-Forwarded-Proto $scheme;
 		proxy_set_header X-NginX-Proxy true;
 
-		# This is necessary to pass the correct IP to be hashed
 		real_ip_header X-Real-IP;
 
-		proxy_connect_timeout 300;
+		proxy_connect_timeout 5s;
+		proxy_read_timeout 60s;
+		proxy_send_timeout 60s;
 
-		# To support websockets in MinIO versions released after January 2023
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
-		proxy_set_header Connection "upgrade";
-		# Some environments may encounter CORS errors (Kubernetes + Nginx Ingress)
-		# Uncomment the following line to set the Origin request to an empty string
-		# proxy_set_header Origin '';
+		proxy_set_header Connection $connection_upgrade;
 
 		chunked_transfer_encoding off;
 
-		proxy_pass http://minio_console; # This uses the upstream directive definition to load balance
+		proxy_pass $minio_console_backend$request_uri;
 	}
 }
